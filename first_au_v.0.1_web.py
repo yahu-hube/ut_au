@@ -73,7 +73,7 @@ def player_handle_movement(keys_pressed, player_rect):
 def draw_window(player_rect, image):
     WIN.fill(SKY_BLUE)
     
-    #WIN.blit(SPAWN_ROOM_BACKGROUND, (0, 0)) 
+    ####WIN.blit(SPAWN_ROOM_BACKGROUND, (0, 0)) 
     
     dirty_rect = pygame.Rect(player_rect.x - 7, player_rect.y - 7, FRISK_WIDTH + 14, FRISK_HEIGHT + 14)
     WIN.fill(SKY_BLUE, dirty_rect) 
