@@ -2,7 +2,6 @@ import pygame, asyncio
 import os
 pygame.font.init()
 pygame.mixer.init()
-pygame.joystick.init()
 
 WIDTH, HEIGHT = 1800, 1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
