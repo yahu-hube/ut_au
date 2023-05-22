@@ -51,7 +51,12 @@ SPAWN_ROOM_BACKGROUND = pygame.transform.rotate(pygame.transform.scale(SPAWN_ROO
 player_rect = pygame.Rect(WIDTH//2, HEIGHT//2, FRISK_WIDTH, FRISK_HEIGHT)
 player_direction_image = FRISK
 
-joystick_rect = pygame.Rect(1600, 800, 150, 150)
+joystick_rect = pygame.Rect(1450, 650, 280, 280)
+joystick_handle = pygame.Rect(1550, 750, 80, 80)
+joystick_outofbox_boolean = False
+mouse_dragging_joystick = False
+
+screen_rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
 
 mouse_buttons = pygame.mouse.get_pressed()
 
@@ -72,12 +77,17 @@ def player_handle_movement(keys_pressed, player_rect):
         player_rect.y += VEL 
         return "back"
 
-def joystick_handle_movement():
-    for event in pygame.event:
+def joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_boolean):
+    
+    for event in pygame.event.get():
+        
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
-            player_rect.x = mouse_x
-            player_rect.y = mouse_y
+            
+            if mouse_dragging_joystick == True:
+                
+                if mouse_x < joystick_rect.x:
+                    joystick_outofbox_boolean = True
 
         elif event.type == pygame.MOUSEBUTTONUP:
             pass
@@ -91,17 +101,20 @@ def joystick_handle_movement():
             pass
         
     
-def draw_window(player_rect, image, joystick_rect):
+def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_handle):
     WIN.fill(SKY_BLUE)
     
     #WIN.blit(SPAWN_ROOM_BACKGROUND, (0, 0)) 
     
     dirty_rect = pygame.Rect(player_rect.x - 7, player_rect.y - 7, FRISK_WIDTH + 14, FRISK_HEIGHT + 14)
-    WIN.fill(SKY_BLUE, dirty_rect) 
-    WIN.blit(image, player_rect) 
-    WIN.fill(BLACK, joystick_rect)
     
-    pygame.display.update(dirty_rect)
+    WIN.fill(SKY_BLUE, dirty_rect)
+    WIN.blit(image, player_rect)
+    
+    WIN.fill(BLACK, joystick_rect) 
+    WIN.fill(WHITE, joystick_handle)
+    
+    pygame.display.update(screen_rect)
 
 async def web_main():
     
@@ -134,7 +147,8 @@ async def web_main():
         if (d == "back"):
             image = FRISK
 
-        draw_window (player_rect, image, joystick_rect)
+        joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_boolean)
+        draw_window (player_rect, image, joystick_rect, screen_rect, joystick_handle)
 
     pygame.quit()
 
