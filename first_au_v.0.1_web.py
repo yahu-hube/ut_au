@@ -53,7 +53,8 @@ player_direction_image = FRISK
 
 joystick_rect = pygame.Rect(1450, 650, 280, 280)
 joystick_handle = pygame.Rect(1550, 750, 80, 80)
-joystick_outofbox_boolean = False
+joystick_outofbox_x = False
+joystick_outofbox_y = False
 mouse_dragging_joystick = False
 
 screen_rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
@@ -77,28 +78,54 @@ def player_handle_movement(keys_pressed, player_rect):
         player_rect.y += VEL 
         return "back"
 
-def joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_boolean):
-    
+def joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_x, joystick_outofbox_y):    
     for event in pygame.event.get():
-        
+        print(event.type)
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
             
-            if mouse_dragging_joystick == True:
+            if mouse_x > joystick_rect.x and mouse_x < joystick_rect.x + 280:
+                mouse_dragging_joystick = True
+            else:
+                joystick_handle.x = 1550
+                joystick_handle.y = 750
                 
-                if mouse_x < joystick_rect.x:
-                    joystick_outofbox_boolean = True
-
+            if mouse_dragging_joystick == True:
+                mouse_x = joystick_handle.x + 40
+                mouse_y = joystick_handle.y + 40
+                if mouse_x < joystick_rect.x or mouse_x > joystick_rect.x + 280:
+                    joystick_outofbox_x = True
+                if mouse_y < joystick_rect.y or mouse_y > joystick_rect.y + 280:
+                    joystick_outofbox_y = True
+                #if joystick_outofbox_x == True:
+                #    joystick_handle.x = 
+                
         elif event.type == pygame.MOUSEBUTTONUP:
-            pass
+            joystick_handle.x = 1550
+            joystick_handle.y = 750
         
         elif event.type == pygame.FINGERDOWN:
             mouse_x, mouse_y = event.pos
-            player_rect.x = mouse_x
-            player_rect.y = mouse_y
-
+            
+            if mouse_x > joystick_rect.x and mouse_x < joystick_rect.x + 280:
+                mouse_dragging_joystick = True
+            else:
+                joystick_handle.x = 1550
+                joystick_handle.y = 750
+                
+            if mouse_dragging_joystick == True:
+                mouse_x = joystick_handle.x + 40
+                mouse_y = joystick_handle.y + 40
+                if mouse_x < joystick_rect.x or mouse_x > joystick_rect.x + 280:
+                    joystick_outofbox_x = True
+                if mouse_y < joystick_rect.y or mouse_y > joystick_rect.y + 280:
+                    joystick_outofbox_y = True
+                #if joystick_outofbox_x == True:
+                #    joystick_handle.x = mouse_x, mouse_y = event.pos
+                
         elif event.type == pygame.FINGERUP:
-            pass
+            joystick_handle.x = 1550
+            joystick_handle.y = 750
         
     
 def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_handle):
@@ -147,7 +174,7 @@ async def web_main():
         if (d == "back"):
             image = FRISK
 
-        joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_boolean)
+        joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_x, joystick_outofbox_y)
         draw_window (player_rect, image, joystick_rect, screen_rect, joystick_handle)
 
     pygame.quit()
