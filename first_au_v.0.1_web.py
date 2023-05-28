@@ -1,5 +1,7 @@
 import pygame, asyncio
 import os
+import time
+
 pygame.font.init()
 pygame.mixer.init()
 
@@ -25,9 +27,10 @@ BORDER = map_border
 
 TEXT_FONT = pygame.font.SysFont('dmsans', 100)
 
-FPS = 35
-VEL = 7
-RUN_VEL = 10
+FPS = 250
+VEL = 1.2
+VEL_FACTOR = 2
+CUR_VEL = VEL
 FRISK_WIDTH, FRISK_HEIGHT = 80, 120
 FRISK_LR_WIDTH, FRISK_LR_HEIGHT = 73, 120
 
@@ -52,7 +55,7 @@ player_rect = pygame.Rect(WIDTH//2, HEIGHT//2, FRISK_WIDTH, FRISK_HEIGHT)
 player_direction_image = FRISK
 
 joystick_rect = pygame.Rect(1450, 650, 280, 280)
-joystick_handle = pygame.Rect(1550, 750, 80, 80)
+joystick_inner_rect = pygame.Rect(1550, 750, 80, 80)
 joystick_outofbox_x = False
 joystick_outofbox_y = False
 mouse_dragging_joystick = False
@@ -64,45 +67,65 @@ mouse_buttons = pygame.mouse.get_pressed()
 WIN.fill(SKY_BLUE)
 pygame.display.update()
 
-def player_handle_movement(keys_pressed, player_rect):
+def player_handle_movement(keys_pressed, player_rect, CUR_VEL):
     if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_a]: # LEFT
-        player_rect.x -= VEL 
+        if keys_pressed[pygame.K_x]:
+            CUR_VEL = VEL_FACTOR * VEL
+        else:
+            CUR_VEL = VEL
+        player_rect.x -= CUR_VEL
         return "left"
     if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]: # RIGHT
-        player_rect.x += VEL 
+        if keys_pressed[pygame.K_x]:
+            CUR_VEL = VEL_FACTOR * VEL
+        else:
+            CUR_VEL = VEL
+        player_rect.x += CUR_VEL
         return "right"
     if keys_pressed[pygame.K_UP] or keys_pressed[pygame.K_w]: # UP
-        player_rect.y -= VEL 
+        if keys_pressed[pygame.K_x]:
+            CUR_VEL = VEL_FACTOR * VEL
+        else:
+            CUR_VEL = VEL
+        player_rect.y -= CUR_VEL
         return "up"
     if keys_pressed[pygame.K_DOWN] or keys_pressed[pygame.K_s]: # DOWN
-        player_rect.y += VEL 
+        if keys_pressed[pygame.K_x]:
+            CUR_VEL = VEL_FACTOR * VEL
+        else:
+            CUR_VEL = VEL
+        player_rect.y += CUR_VEL
         return "back"
 
-def joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_x, joystick_outofbox_y):    
+def joystick_handle_movement(joystick_rect, joystick_inner_rect, joystick_outofbox_x, joystick_outofbox_y):   
+    global  mouse_dragging_joystick
     for event in pygame.event.get():
-        print(event.type)
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
-            
+            '''
             if mouse_x > joystick_rect.x and mouse_x < joystick_rect.x + 280:
                 mouse_dragging_joystick = True
             else:
-                joystick_handle.x = 1550
-                joystick_handle.y = 750
+                joystick_inner_rect.x = 1550
+                joystick_inner_rect.y = 750
                 
             if mouse_dragging_joystick == True:
-                mouse_x = joystick_handle.x + 40
-                mouse_y = joystick_handle.y + 40
-                if mouse_x < joystick_rect.x or mouse_x > joystick_rect.x + 280:
+                mouse_x = joystick_inner_rect.x + 40
+                mouse_y = joystick_inner_rect.y + 40
+                if mouse_x < joystick_rect.x:
                     joystick_outofbox_x = True
+                if mouse_x > joystick_rect.x + 280:
+                        joystick_outofbox_x = True
                 if mouse_y < joystick_rect.y or mouse_y > joystick_rect.y + 280:
                     joystick_outofbox_y = True
-                #if joystick_outofbox_x == True:
-                #    joystick_handle.x = 
+                '''
+            joystick_inner_rect.x, joystick_inner_rect.y = 1550, 850
+            #if joystick_outofbox_x == True:
+            #    joystick_inner_rect.x = 
                 
         elif event.type == pygame.MOUSEBUTTONUP:
-            joystick_handle.x = 1550
-            joystick_handle.y = 750
+            joystick_inner_rect.x = 1550
+            joystick_inner_rect.y = 750
         
         elif event.type == pygame.FINGERDOWN:
             mouse_x, mouse_y = event.pos
@@ -110,25 +133,25 @@ def joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_x
             if mouse_x > joystick_rect.x and mouse_x < joystick_rect.x + 280:
                 mouse_dragging_joystick = True
             else:
-                joystick_handle.x = 1550
-                joystick_handle.y = 750
+                joystick_inner_rect.x = 1550
+                joystick_inner_rect.y = 750
                 
             if mouse_dragging_joystick == True:
-                mouse_x = joystick_handle.x + 40
-                mouse_y = joystick_handle.y + 40
+                mouse_x = joystick_inner_rect.x + 40
+                mouse_y = joystick_inner_rect.y + 40
                 if mouse_x < joystick_rect.x or mouse_x > joystick_rect.x + 280:
                     joystick_outofbox_x = True
                 if mouse_y < joystick_rect.y or mouse_y > joystick_rect.y + 280:
                     joystick_outofbox_y = True
                 #if joystick_outofbox_x == True:
-                #    joystick_handle.x = mouse_x, mouse_y = event.pos
+                #    joystick_inner_rect.x = mouse_x, mouse_y = event.pos
                 
         elif event.type == pygame.FINGERUP:
-            joystick_handle.x = 1550
-            joystick_handle.y = 750
+            joystick_inner_rect.x = 1550
+            joystick_inner_rect.y = 750
         
     
-def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_handle):
+def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_inner_rect):
     WIN.fill(SKY_BLUE)
     
     #WIN.blit(SPAWN_ROOM_BACKGROUND, (0, 0)) 
@@ -139,7 +162,7 @@ def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_handle)
     WIN.blit(image, player_rect)
     
     WIN.fill(BLACK, joystick_rect) 
-    WIN.fill(WHITE, joystick_handle)
+    WIN.fill(WHITE, joystick_inner_rect)
     
     pygame.display.update(screen_rect)
 
@@ -155,15 +178,17 @@ async def web_main():
     image = FRISK
     pygame.mouse.set_visible(True)
     while run:
-        clock.tick(FPS)
+        
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 run = False
+                pygame.quit()
+                return
         
         BORDER = pygame.Rect(map_border)
         
         keys_pressed = pygame.key.get_pressed()
-        d = player_handle_movement(keys_pressed, player_rect)
+        d = player_handle_movement(keys_pressed, player_rect, CUR_VEL)
 
         if (d == "left"):
             image = FRISK_LEFT
@@ -173,10 +198,11 @@ async def web_main():
             image = FRISK_BACK
         if (d == "back"):
             image = FRISK
-
-        joystick_handle_movement(joystick_rect, joystick_handle, joystick_outofbox_x, joystick_outofbox_y)
-        draw_window (player_rect, image, joystick_rect, screen_rect, joystick_handle)
-
+        
+        draw_window (player_rect, image, joystick_rect, screen_rect, joystick_inner_rect)
+        joystick_handle_movement(joystick_rect, joystick_inner_rect, joystick_outofbox_x, joystick_outofbox_y)
+        clock.tick(FPS)
+    print("run = ", run)    
     pygame.quit()
 
 if __name__ == "__main__":
