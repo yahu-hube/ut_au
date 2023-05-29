@@ -1,6 +1,7 @@
 import pygame, asyncio
 import os
 import time
+import random
 
 pygame.font.init()
 pygame.mixer.init()
@@ -34,7 +35,9 @@ CUR_VEL = VEL
 FRISK_WIDTH, FRISK_HEIGHT = 80, 120
 FRISK_LR_WIDTH, FRISK_LR_HEIGHT = 73, 120
 
-ENCOUTER_MONSTER = pygame.USEREVENT +1
+ENCOUNTER_FROGGIT = pygame.USEREVENT +1
+ENCOUNTER_WHIMSUM = pygame.USEREVENT +2
+ENCOUNTER_STEP_COUNT = 0
 
 FRISK = pygame.image.load(os.path.join('resources', 'frisk.png'))
 FRISK_LEFT = pygame.image.load(os.path.join('resources', 'frisk_left.png'))
@@ -60,6 +63,8 @@ joystick_outofbox_x = False
 joystick_outofbox_y = False
 mouse_dragging_joystick = False
 
+FIGHT_RECT = pygame.Rect(80, 450, 1650, 350)
+
 screen_rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
 
 mouse_buttons = pygame.mouse.get_pressed()
@@ -67,13 +72,14 @@ mouse_buttons = pygame.mouse.get_pressed()
 WIN.fill(SKY_BLUE)
 pygame.display.update()
 
-def player_handle_movement(keys_pressed, player_rect, CUR_VEL):
+def player_handle_movement(keys_pressed, player_rect, CUR_VEL, ENCOUNTER_STEP_COUNT):
     if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_a]: # LEFT
         if keys_pressed[pygame.K_x]:
             CUR_VEL = VEL_FACTOR * VEL
         else:
             CUR_VEL = VEL
         player_rect.x -= CUR_VEL
+        ENCOUNTER_STEP_COUNT += 1
         return "left"
     if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]: # RIGHT
         if keys_pressed[pygame.K_x]:
@@ -81,6 +87,7 @@ def player_handle_movement(keys_pressed, player_rect, CUR_VEL):
         else:
             CUR_VEL = VEL
         player_rect.x += CUR_VEL
+        ENCOUNTER_STEP_COUNT += 1
         return "right"
     if keys_pressed[pygame.K_UP] or keys_pressed[pygame.K_w]: # UP
         if keys_pressed[pygame.K_x]:
@@ -88,6 +95,7 @@ def player_handle_movement(keys_pressed, player_rect, CUR_VEL):
         else:
             CUR_VEL = VEL
         player_rect.y -= CUR_VEL
+        ENCOUNTER_STEP_COUNT += 1
         return "up"
     if keys_pressed[pygame.K_DOWN] or keys_pressed[pygame.K_s]: # DOWN
         if keys_pressed[pygame.K_x]:
@@ -95,6 +103,7 @@ def player_handle_movement(keys_pressed, player_rect, CUR_VEL):
         else:
             CUR_VEL = VEL
         player_rect.y += CUR_VEL
+        ENCOUNTER_STEP_COUNT += 1
         return "back"
 
 def joystick_handle_movement(joystick_rect, joystick_inner_rect, joystick_outofbox_x, joystick_outofbox_y):   
@@ -149,9 +158,16 @@ def joystick_handle_movement(joystick_rect, joystick_inner_rect, joystick_outofb
         elif event.type == pygame.FINGERUP:
             joystick_inner_rect.x = 1550
             joystick_inner_rect.y = 750
-        
+
+def encounter_monster(FIGHT_RECT):
+    if ENCOUNTER_STEP_COUNT > 20:
+        x = random(1, 100)
+        if x < 20:
+            print("u right")
+    else:
+        pass
     
-def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_inner_rect):
+def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_inner_rect, FIGHT_RECT):
     WIN.fill(SKY_BLUE)
     
     #WIN.blit(SPAWN_ROOM_BACKGROUND, (0, 0)) 
@@ -159,10 +175,14 @@ def draw_window(player_rect, image, joystick_rect, screen_rect, joystick_inner_r
     dirty_rect = pygame.Rect(player_rect.x - 7, player_rect.y - 7, FRISK_WIDTH + 14, FRISK_HEIGHT + 14)
     
     WIN.fill(SKY_BLUE, dirty_rect)
+    
+    WIN.fill(BLUE, joystick_rect) 
     WIN.blit(image, player_rect)
     
-    WIN.fill(BLACK, joystick_rect) 
     WIN.fill(WHITE, joystick_inner_rect)
+    
+    WIN.fill(WHITE, FIGHT_RECT)
+    WIN.fill(BLACK, (FIGHT_RECT.x + 30, FIGHT_RECT.y + 30, 1650 - 60, 640 - 350))
     
     pygame.display.update(screen_rect)
 
@@ -188,7 +208,7 @@ async def web_main():
         BORDER = pygame.Rect(map_border)
         
         keys_pressed = pygame.key.get_pressed()
-        d = player_handle_movement(keys_pressed, player_rect, CUR_VEL)
+        d = player_handle_movement(keys_pressed, player_rect, CUR_VEL, ENCOUNTER_STEP_COUNT)
 
         if (d == "left"):
             image = FRISK_LEFT
@@ -199,10 +219,11 @@ async def web_main():
         if (d == "back"):
             image = FRISK
         
-        draw_window (player_rect, image, joystick_rect, screen_rect, joystick_inner_rect)
+        encounter_monster(FIGHT_RECT)
         joystick_handle_movement(joystick_rect, joystick_inner_rect, joystick_outofbox_x, joystick_outofbox_y)
+        draw_window (player_rect, image, joystick_rect, screen_rect, joystick_inner_rect, FIGHT_RECT)
         clock.tick(FPS)
-    print("run = ", run)    
+        
     pygame.quit()
 
 if __name__ == "__main__":
